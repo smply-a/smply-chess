@@ -3,9 +3,11 @@ node_modules/
 .pnp
 .pnp.*
 
-# Next.js Build Output
+# Next.js Build Output & Type Generation
 .next/
 out/
+next-env.d.ts
+*.tsbuildinfo
 
 # Production / Bundles
 build/
