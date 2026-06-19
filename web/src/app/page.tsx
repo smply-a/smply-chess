@@ -1,7 +1,11 @@
+import ChessBoard from "@/components/Chessboard";
 
 export default function Home() {
     return (
-        <div className="">Simply Chess</div>
+        <div className="flex">
+            <aside>Playing options / chat</aside>
+            <ChessBoard/>
+        </div>
     );
 }
 
