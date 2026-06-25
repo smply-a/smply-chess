@@ -1,15 +1,15 @@
 import { BoardState, CastlingRights, isBoard, isColor, isPiece, isSquare, Piece } from "./types";
 
-const newGameBoard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+export { newBoard, parseFEN };
 
-export const newBoard = () => parseFEN(newGameBoard)
+const newBoard = () => parseFEN(newGameBoard)
 
-export function parseFEN(fen: string): BoardState {
+function parseFEN(fen: string): BoardState {
     const [boardStr, turn, castlingRightsStr, enPassantTargetStr, halfmoveClockStr, fullmoveNumberStr] = fen.split(" ")
 
-    const board: (Piece|null)[][] = (() => {
-        return boardStr.split("/").map(rank => {
-            const r = []
+    const board: (Piece|null)[] = (() => {
+        return boardStr.split("/").reverse().flatMap(rank => {
+            const r: (Piece|null)[] = []
             for (const char of rank) {
                 const num = parseInt(char)
                 if (!isNaN(num)) {
@@ -54,3 +54,9 @@ export function parseFEN(fen: string): BoardState {
 
     return {board, turn, castlingRights, enPassantTarget, halfmoveClock, fullmoveNumber}
 }
+
+// TODO calc board state (enpassant, castling (rook/ king moved ))
+
+
+// Constants
+const newGameBoard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
