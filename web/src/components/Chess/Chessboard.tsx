@@ -1,33 +1,40 @@
 "use client"
 import { newBoard } from "@/lib/Chess/board"
-import { Move } from "@/lib/Chess/movegen"
-import { Color, File, getFile, getIndex, getRank, Rank, Square, toSquare } from "@/lib/Chess/types"
-import { useState } from "react"
+import { getMoves, makeMove, Move } from "@/lib/Chess/movegen"
+import { BoardState, Color, File, getFile, getIndex, getRank, Rank, Square, toSquare } from "@/lib/Chess/types"
+import { useReducer, useState } from "react"
 import ChessSquare from "./Square"
 
 export const ChessBoard = () => {
+    const [gameState, dispatch] = useReducer(chessReducer, null, newBoard)
 
-    // todo maybe usereducer statt so vielen states
-    const [board, setBoard] = useState(newBoard().board)
     const [selectedSquare, setSelectedSquare] = useState<Square|null>(null)
-    // todo: maybe possible moves als key value pair? für easy acces?
-    const [possibleMoves, setPossibleMoves] = useState<Move[]|null>
+    // todo: maybe possible moves als key value pair? für easy acces? bzw precalc all moves for a colors turn? [index]Move[]
+    const [possibleMoves, setPossibleMoves] = useState<Move[]|null>(null)
+
     // todo: toggle
     const [orientation, setOrientation] = useState<Color>(Color.White)
 
     const handleClick = (square: Square) => {
         const isSameSquare = square === selectedSquare;
-        const piece = board[getIndex(square)]
+        const piece = gameState.board[getIndex(square)]
 
-        // TODO generate moves
+        //TODO handle captures with indicators
+        const possibleMove = possibleMoves?.find(move => move.to == square)
 
-        //TODO on move, abhängig von peace: update state
+        if (possibleMove) {
+            dispatch({
+                type: "MAKE_MOVE",
+                move: possibleMove
+            })
+        }
 
         if (isSameSquare || !piece) {
-            // toggle selection
             setSelectedSquare(null)
+            setPossibleMoves(null)
         } else {
             setSelectedSquare(square)
+            setPossibleMoves(getMoves(piece, gameState, square))
         }
     }
 
@@ -36,14 +43,15 @@ export const ChessBoard = () => {
             {Array.from({length: 64}).map((_, displayIndex) => {
                 const [index, file, rank] = displayVsStateIndex(displayIndex, orientation)
                 const thisSquare = toSquare(index)
+                const possibleMove = possibleMoves?.find(move => move.to == thisSquare)
 
                 return (<ChessSquare 
                     key={thisSquare}
-                    piece={board[index]}
+                    piece={gameState.board[index]}
                     isWhite={(rank + file) % 2 === 1}
                     isSelected={selectedSquare === thisSquare}
                     onClick={() => handleClick(thisSquare)}
-                    possibleMove={null}
+                    isPossibleMove={!!possibleMove}
                 />)
             })}
         </div>
@@ -63,4 +71,19 @@ function displayVsStateIndex(displayIndex: number, orientation: Color): [index: 
     }
 
     return [rank * 8 + file, file, rank]
+}
+
+type ChessAction = 
+    | {type: "MAKE_MOVE"; move: Move}
+    | {type: "RESET_GAME";}
+
+function chessReducer(state: BoardState, action: ChessAction) {
+    switch (action.type) {
+        case "MAKE_MOVE":
+            // todo handle clock mybe??
+            return makeMove(state, action.move)
+
+        case "RESET_GAME":
+            return newBoard()
+    }
 }

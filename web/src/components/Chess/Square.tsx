@@ -1,15 +1,14 @@
-import { MoveType } from "@/lib/Chess/movegen";
 import { Piece } from "@/lib/Chess/types";
 
 interface Props {
     piece: Piece | null;
     isWhite: boolean;
     isSelected: boolean;
-    possibleMove: MoveType | null;
+    isPossibleMove?: boolean;
     onClick: () => void
 }
 
-const ChessSquare = ({piece, isWhite, isSelected, possibleMove, onClick}: Props) => {
+const ChessSquare = ({piece, isWhite, isSelected, isPossibleMove, onClick}: Props) => {
 
     const color = isSelected ? "bg-gray-400" : isWhite ? "bg-white" : "bg-black"
     const textColor = isWhite ? "text-black" : "text-white"
@@ -21,7 +20,7 @@ const ChessSquare = ({piece, isWhite, isSelected, possibleMove, onClick}: Props)
         }
         onClick={onClick}
     >
-        {piece ? piece : ""}
+        {piece ? piece : isPossibleMove ? "+" : ""}
     </div>)
 }
 
