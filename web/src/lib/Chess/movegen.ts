@@ -1,7 +1,7 @@
 import { Board, BoardState, CastlingRights, Color, getColor, getFile, getIndex, getRank, isBoard, Piece, Rank, Square, toSquare } from "./types";
 
 
-export { getMoves, makeMove, type Move, type MoveType };
+export { getMoves, makeMove, type Move, type MoveType, type PromotionType };
 
 type PieceType = Lowercase<Piece>
 type PromotionType = Exclude<PieceType, "p" | "k">
@@ -28,7 +28,7 @@ function newMove(type: MoveType, from: Square, to: Square): Move {
 }
 
 function newPromotionMoves(type: MoveType, from: Square, to: Square,): Move[] {
-    const promotions: PromotionType[] = ["b", "n", "r", "q"]
+    const promotions: PromotionType[] = ["q", "r", "n", "b"]
     return promotions.map(promotion => ({
         type, 
         from, to,

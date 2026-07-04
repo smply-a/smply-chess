@@ -1,6 +1,6 @@
-import { BoardState, CastlingRights, isBoard, isColor, isPiece, isSquare, Piece } from "./types";
+import { BoardState, CastlingRights, Color, File, getFile, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank } from "./types";
 
-export { newBoard, parseFEN };
+export { displayVsStateIndex, newBoard, parseFEN, pieceMapping };
 
 const newBoard = () => parseFEN(newGameBoard)
 
@@ -55,8 +55,33 @@ function parseFEN(fen: string): BoardState {
     return {board, turn, castlingRights, enPassantTarget, halfmoveClock, fullmoveNumber}
 }
 
-// TODO calc board state (enpassant, castling (rook/ king moved ))
+const pieceMapping: Record<Piece, string> = {
+    "p": "/pieces/p.svg",
+    "k": "/pieces/k.svg",
+    "n": "/pieces/n.svg",
+    "q": "/pieces/q.svg",
+    "r": "/pieces/r.svg",
+    "b": "/pieces/b.svg",
+    "P": "/pieces/wp.svg",
+    "K": "/pieces/wk.svg",
+    "N": "/pieces/wn.svg",
+    "Q": "/pieces/wq.svg",
+    "R": "/pieces/wr.svg",
+    "B": "/pieces/wb.svg",
+}
 
+function displayVsStateIndex(displayIndex: number, orientation: Color): [index: number, file: File, rank: Rank] {
+    let rank = getRank(displayIndex)
+    let file = getFile(displayIndex)
+
+    if (orientation === Color.White) {
+        rank = 7 - rank
+    } else {
+        file = 7 - file
+    }
+
+    return [rank * 8 + file, file, rank]
+}
 
 // Constants
 const newGameBoard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
