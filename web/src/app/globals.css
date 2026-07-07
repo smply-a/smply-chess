@@ -1,28 +1,68 @@
 @import "tailwindcss";
 
+@theme {
+  --color-neutral-950: #171717;
+  --color-neutral-900: #1f1f1f;
+  --color-neutral-800: #2b2b2b;
+  --color-neutral-700: #3d3d3d;
+  --color-neutral-500: #7a7a7a;
+  --color-neutral-300: #cccccc;
+  --color-neutral-50:  #fafafa;
+
+  --color-success-500: #4ade80;
+  --color-error-500: #ef4444;
+  --color-warning-500: #eab308;
+
+  --color-board-light: #d9bf94;
+  --color-board-dark: #6b4226;
+  --color-square-selected: #8c8c8c;
+  --color-square-last-move: #a8a8a8;
+  --color-square-hover: var(--color-square-selected);
+  --color-move-indicator: rgba(23, 23, 23, 0.5);
+  --color-capture-ring: var(--color-move-indicator);
+
+  --font-serif: var(--font-noto-serif), ui-serif, Georgia, serif;
+}
+
+/* Semantic layer */
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --color-bg-page: var(--color-neutral-950);
+  --color-bg-surface: var(--color-neutral-900);
+  --color-bg-surface-hover: var(--color-neutral-800);
+  --color-text-primary: var(--color-neutral-50);
+  --color-text-secondary: var(--color-neutral-500);
+  --color-text-muted: var(--color-neutral-300);
+  --color-border-default: var(--color-neutral-700);
+
+  --color-action-primary: var(--color-neutral-50);
+  --color-action-primary-hover: var(--color-neutral-300);
+  --color-action-primary-text: var(--color-neutral-950);
+
+  --color-action-secondary: var(--color-neutral-800);
+  --color-action-secondary-hover: var(--color-neutral-700);
+  --color-action-secondary-text: var(--color-neutral-50);
+  --color-action-secondary-border: var(--color-neutral-700);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-serif: var(--font-noto-serif);
+/* !! only use them !! */
+@theme {
+  --color-bg-page: var(--color-bg-page);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-bg-surface-hover: var(--color-bg-surface-hover);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-border-default: var(--color-border-default);
+  --color-action-primary: var(--color-action-primary);
+  --color-action-primary-text: var(--color-action-primary-text);
+  --color-action-secondary: var(--color-action-secondary);
+  --color-action-secondary-hover: var(--color-action-secondary-hover);
+  --color-action-secondary-text: var(--color-action-secondary-text);
+  --color-action-secondary-border: var(--color-action-secondary-border);
 }
-
-/* später ergänzen aber eigentlich unnötig
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
   font-family: var(--font-serif), Arial;
 }

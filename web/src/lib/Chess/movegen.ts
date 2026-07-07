@@ -1,7 +1,7 @@
 import { Board, BoardState, CastlingRights, Color, getColor, getFile, getIndex, getRank, isBoard, Piece, Rank, Square, toSquare } from "./types";
 
 
-export { getMoves, makeMove, type Move, type MoveType, type PromotionType };
+export { getMoves, makeMove, type Move, type MoveType };
 
 type PieceType = Lowercase<Piece>
 type PromotionType = Exclude<PieceType, "p" | "k">
@@ -10,7 +10,7 @@ type MoveType = "normal" | "capture" | "en-passant" | "castle-king-side" | "cast
 
 interface Move {
     type: MoveType
-    promotion?: PromotionType
+    promotion?: Piece
     from: Square
     to: Square
 }
@@ -27,11 +27,17 @@ function newMove(type: MoveType, from: Square, to: Square): Move {
     }
 }
 
-function newPromotionMoves(type: MoveType, from: Square, to: Square,): Move[] {
-    const promotions: PromotionType[] = ["q", "r", "n", "b"]
-    return promotions.map(promotion => ({
-        type, 
-        from, to,
+function newPromotionMoves(type: MoveType, from: Square, to: Square, color: Color): Move[] {
+    const promotions: PromotionType[] = ["q", "r", "b", "n"]
+
+    const pieces = color === Color.White 
+        ? promotions.map(p => p.toUpperCase() as Piece)
+        : promotions.map(p => p as Piece)
+
+    return pieces.map(promotion => ({
+        type,
+        from,
+        to,
         promotion
     }))
 }
@@ -89,7 +95,7 @@ function getPawnMoves(square: Square, color: Color, board: Board, enPassantTarge
     // pawn push (1 rank)
     if (!board[index1front]) {
         if (promotion) {
-            moves.push(...newPromotionMoves("normal", square, toSquare(index1front)))
+            moves.push(...newPromotionMoves("normal", square, toSquare(index1front), color))
         } else {
             moves.push(newMove("normal", square, toSquare(index1front)))
         }
@@ -111,7 +117,7 @@ function getPawnMoves(square: Square, color: Color, board: Board, enPassantTarge
 
         if (occupant && getColor(occupant) !== color) {
             if (promotion) {
-                moves.push(...newPromotionMoves("capture", square, targetSquare))
+                moves.push(...newPromotionMoves("capture", square, targetSquare, color))
             } else {
                 moves.push(newMove("capture", square, targetSquare))
             }
@@ -228,6 +234,8 @@ function getKingMoves(square: Square, turn: Color, board: Board, castlingRights:
     return moves
 }
 
+// todo checks
+
 // todo add material count
 function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, fullmoveNumber}: BoardState, {type, from, to, promotion}: Move): BoardState {
 
@@ -238,7 +246,8 @@ function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, 
 
     let piece = newBoard[fromIndex]
     if (!piece) throw new Error("Move has no valid piece where it moves from")
-    const targetPiece = board[toIndex]
+
+    if (promotion) piece = promotion
     
     // pawn related
     if (turn === Color.Black) {
@@ -248,8 +257,6 @@ function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, 
         if (type === "en-passant") {
             // delete victim
             newBoard[toIndex + 8] = null
-        } else if (promotion) {
-            piece = promotion as Piece
         }
 
         
@@ -260,8 +267,6 @@ function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, 
         if (type === "en-passant") {
             // delete victim
             newBoard[toIndex - 8] = null
-        } else if (promotion) {
-            piece = promotion.toUpperCase() as Piece
         }
 
         turn = Color.Black
