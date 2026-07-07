@@ -8,11 +8,12 @@ interface Props {
     isWhite: boolean;
     isSelected: boolean;
     isLastMove: boolean
+    isCheck: boolean;
     possibleMove?: Move[];
     onClick: () => void;
 }
 
-const ChessSquare = ({ piece, isWhite, isSelected, isLastMove, possibleMove, onClick, turn }: Props) => {
+const ChessSquare = ({ isCheck, piece, isWhite, isSelected, isLastMove, possibleMove, onClick, turn }: Props) => {
     let squareColor = isWhite ? "bg-board-light" : "bg-board-dark";
     if (isLastMove) squareColor = "bg-square-last-move"
     if (isSelected) squareColor = "bg-square-selected"
@@ -35,9 +36,14 @@ const ChessSquare = ({ piece, isWhite, isSelected, isLastMove, possibleMove, onC
                 onClick()
             }}
         >
+
             <div className={"relative w-full h-full z-10 p-[5%]"}>
                 {piece && <PieceComponent piece={piece}/>}
             </div>
+
+            {isCheck && !isSelected && (
+                <div className="absolute inset-0 bg-square-check" />
+            )}
 
             {isMove && (
                 <div className="absolute inset-0 flex justify-center items-center z-20 pointer-events-none">

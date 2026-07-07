@@ -2,22 +2,19 @@
 
 import { createContext, Dispatch, ReactNode, useContext, useReducer, useState } from "react"
 import { newBoard } from "./board"
-import { getMoves, makeMove, Move } from "./movegen"
-import { BoardState, Color, getColor, getIndex, Square } from "./types"
+import { getLegalMoves, kingInCheck, makeMove, Move } from "./movegen"
+import { BoardState, Color, getColor, getIndex, Square, toSquare } from "./types"
 
 export { MatchProvider, useMatch, type Interaction }
 
 interface MatchState  {
     boardState: BoardState
     history: Move[]
+    legalMoves: {moves: Move[][], total: number}
+    inCheck: boolean
+    isCheckMate: boolean;
+    isStaleMate: boolean;
 } 
-
-function newMatch(): MatchState {
-    return {
-        boardState: newBoard(),
-        history: []
-    }
-}
 
 type MatchAction = 
     | {type: "MAKE_MOVE"; move: Move}
@@ -25,18 +22,29 @@ type MatchAction =
 
 function matchReducer(state: MatchState, action: MatchAction) {
     switch (action.type) {
-        case "MAKE_MOVE":
+        case "MAKE_MOVE":{
             // todo handle clock mybe??
-            return {
-                boardState: makeMove(state.boardState, action.move),
-                history: [...state.history, action.move]
-            }
+            const boardState = makeMove(state.boardState, action.move)
+            const inCheck = kingInCheck(boardState, boardState.turn);
+            const legalMoves = getAllLegalMoves(boardState)
 
-        case "RESET_GAME":
+            const isCheckMate =  inCheck && legalMoves.total === 0
+            let isStaleMate = false
+            if(!inCheck && legalMoves.total === 0) isStaleMate = true
+            // todo other stalemate conditions
+
             return {
-                boardState: newBoard(),
-                history: []
+                boardState,
+                history: [...state.history, action.move],
+                inCheck,
+                legalMoves,
+                isCheckMate,
+                isStaleMate
             }
+        }       
+        case "RESET_GAME":{
+            return newMatch()
+        }
         default: assertNever(action)
     }
 }
@@ -90,6 +98,7 @@ const MatchProvider = ({children}: {children: ReactNode}) => {
     }
 
     const handleSelect = (square: Square) => {
+        const index = getIndex(square)
         switch (interaction.type) {
             // dont handle squares while promoting
             case "promoting": return
@@ -113,21 +122,21 @@ const MatchProvider = ({children}: {children: ReactNode}) => {
                 }
 
                 // select other piece
-                const piece = matchState.boardState.board[getIndex(square)]
+                const piece = matchState.boardState.board[index]
                 if (piece && matchState.boardState.turn === getColor(piece)) {
-                    return setInteraction({ type: "selected", square, moves: getMoves(piece, matchState.boardState, square) })
+                    return setInteraction({ type: "selected", square, moves: matchState.legalMoves.moves[index] })
                 }
 
                 return setInteraction({ type: "idle" })
             }
             
             case "idle": {
-                const piece = matchState.boardState.board[getIndex(square)]
+                const piece = matchState.boardState.board[index]
 
                 // ignore invalid 
                 if (!piece || matchState.boardState.turn !== getColor(piece)) return
 
-                return setInteraction({type: "selected", square, moves: getMoves(piece, matchState.boardState, square)})
+                return setInteraction({type: "selected", square, moves: matchState.legalMoves.moves[index]})
             }
 
             default: return assertNever(interaction)
@@ -145,6 +154,35 @@ const useMatch = () => {
     return ctx
 }
 
+function newMatch(): MatchState {
+    const boardState = newBoard()
+    return {
+        boardState,
+        history: [],
+        inCheck: false,
+        legalMoves: getAllLegalMoves(boardState),
+        isCheckMate: false,
+        isStaleMate: false,
+    }
+}
+
+function getAllLegalMoves(boardState: BoardState) {
+    let total = 0
+    const map: Move[][] = new Array(64).fill(null).map(() => [])
+    const { board, turn } = boardState
+
+    for (let i = 0; i < 64; i++) {
+        const piece = board[i]
+        if (!piece || getColor(piece) !== turn) continue
+
+        const square = toSquare(i)
+        const moves = getLegalMoves(piece, boardState, square)
+        map[i] = moves
+        total += moves.length
+    }
+
+    return { moves: map, total }
+}
 
 function assertNever(x: never): never {
     throw new Error("Unhandled action: " + JSON.stringify(x))

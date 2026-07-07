@@ -1,4 +1,4 @@
-export { Color, File, getColor, getFile, getIndex, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank, toSquare, type Board, type BoardState, type CastlingRights, type Square };
+export { Color, File, getColor, getFile, getIndex, getPieceType, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank, toSquare, type Board, type BoardState, type CastlingRights, type PieceType, type PromotionType, type Square };
 
 enum Color {
     White = "w",
@@ -33,10 +33,17 @@ enum Piece {
     BlackKing = "k"
 }  
 
+type PieceType = Lowercase<Piece>
+type PromotionType = Exclude<PieceType, "p" | "k">
+
 function isPiece(str: string): str is Piece {
     const piece = /^[pnbrqkPNBRQK]$/;
     return piece.test(str);
-} 
+}
+
+function getPieceType(piece: Piece): PieceType {
+    return piece.toLocaleLowerCase() as PieceType
+}
 
 enum Rank {
     One = 0,
@@ -103,7 +110,7 @@ type Square = `${typeof FILE_NAMES[number]}${typeof RANK_NAMES[number]}`
 function isSquare(str: string): str is Square {
     const square = /^[A-H][1-8]$/;
     return square.test(str)
-}   
+}
 
 function toSquare(file: File, rank: Rank): Square
 function toSquare(index: number): Square

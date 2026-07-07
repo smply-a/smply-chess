@@ -17,6 +17,7 @@
   --color-board-dark: #6b4226;
   --color-square-selected: #8c8c8c;
   --color-square-last-move: #a8a8a8;
+  --color-square-check: #ff0000;
   --color-square-hover: var(--color-square-selected);
   --color-move-indicator: rgba(23, 23, 23, 0.5);
   --color-capture-ring: var(--color-move-indicator);

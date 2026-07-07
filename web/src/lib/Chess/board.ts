@@ -1,6 +1,6 @@
-import { BoardState, CastlingRights, Color, File, getFile, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank } from "./types";
+import { Board, BoardState, CastlingRights, Color, File, getFile, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank } from "./types";
 
-export { displayVsStateIndex, newBoard, parseFEN, pieceMapping };
+export { displayVsStateIndex, getKingIndex, newBoard, parseFEN, pieceMapping };
 
 const newBoard = () => parseFEN(newGameBoard)
 
@@ -81,6 +81,14 @@ function displayVsStateIndex(displayIndex: number, orientation: Color): [index: 
     }
 
     return [rank * 8 + file, file, rank]
+}
+
+function getKingIndex(color: Color, board: Board): number {
+    const king = color === Color.Black ? Piece.BlackKing : Piece.WhiteKing
+    for (let i = 0; i<64; i++) {
+        if (board[i] === king) return i
+    }
+    throw new Error("King is not on board")
 }
 
 // Constants

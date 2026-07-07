@@ -1,10 +1,7 @@
-import { Board, BoardState, CastlingRights, Color, getColor, getFile, getIndex, getRank, isBoard, Piece, Rank, Square, toSquare } from "./types";
+import { Board, BoardState, CastlingRights, Color, getColor, getFile, getIndex, getPieceType, getRank, isBoard, Piece, PromotionType, Rank, Square, toSquare } from "./types";
 
 
-export { getMoves, makeMove, type Move, type MoveType };
-
-type PieceType = Lowercase<Piece>
-type PromotionType = Exclude<PieceType, "p" | "k">
+export { getLegalMoves, kingInCheck, makeMove, type Move, type MoveType };
 
 type MoveType = "normal" | "capture" | "en-passant" | "castle-king-side" | "castle-queen-side"
 
@@ -13,10 +10,6 @@ interface Move {
     promotion?: Piece
     from: Square
     to: Square
-}
-
-function getPieceType(piece: Piece): PieceType {
-    return piece.toLocaleLowerCase() as PieceType
 }
 
 function newMove(type: MoveType, from: Square, to: Square): Move {
@@ -41,27 +34,28 @@ function newPromotionMoves(type: MoveType, from: Square, to: Square, color: Colo
         promotion
     }))
 }
- 
+
+const bishopOffsets = [9, 7, -7, -9]
+const rookOffsets = [8, -8, 1, -1]
+
+
 function getMoves(piece: Piece, boardState: BoardState, square: Square): Move[] {
-    const {board, enPassantTarget, castlingRights, turn } = boardState
+    const {board, enPassantTarget, castlingRights} = boardState
     const pieceColor = getColor(piece)
     
     switch (getPieceType(piece)) {
         case "p":
             return getPawnMoves(square, pieceColor, board, enPassantTarget)
         case "n":
-            return getKnightMoves(square, turn, board)
+            return getKnightMoves(square, pieceColor, board)
         case "b":
-            return getSlidingMoves(square, turn, board, [9, 7, -7, -9])
+            return getSlidingMoves(square, pieceColor, board, bishopOffsets)
         case "r":
-            return getSlidingMoves(square, turn, board, [8, -8, 1, -1])
+            return getSlidingMoves(square, pieceColor, board, rookOffsets)
         case "q":
-            return getSlidingMoves(square, turn, board, [
-                9, 7, -7, -9, // bishop
-                8, -8, 1, -1, // rook
-            ])
+            return getSlidingMoves(square, pieceColor, board, [...bishopOffsets, ...rookOffsets])
         case "k":
-            return getKingMoves(square, turn, board, castlingRights)
+            return getKingMoves(square, pieceColor, boardState, castlingRights)
     }
 }
 
@@ -195,7 +189,8 @@ function getSlidingMoves(square: Square, turn: Color, board: Board, offsets: num
     return moves
 }
 
-function getKingMoves(square: Square, turn: Color, board: Board, castlingRights: CastlingRights): Move[] {
+function getKingMoves(square: Square, turn: Color, boardState: BoardState, castlingRights: CastlingRights): Move[] {
+    const {board} = boardState
     const moves: Move[] = []
     const attacks = [9, 8, 7, 1, -1, -7, -8, -9]
 
@@ -233,8 +228,6 @@ function getKingMoves(square: Square, turn: Color, board: Board, castlingRights:
 
     return moves
 }
-
-// todo checks
 
 // todo add material count
 function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, fullmoveNumber}: BoardState, {type, from, to, promotion}: Move): BoardState {
@@ -294,11 +287,47 @@ function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, 
     return {board: newBoard, turn, enPassantTarget, castlingRights: newCastlingRights, fullmoveNumber, halfmoveClock}
 }
 
+// braucht color falls ich einen boardstate nur simuliere
+function kingInCheck(boardState: BoardState, turn: Color): boolean {
+    const { board } = boardState
+    let kingSquare: Square | null = null
 
+    for (let i = 0; i < 64; i++) {
+        const piece = board[i]
+        if (piece && getPieceType(piece) === "k" && getColor(piece) === turn) {
+            kingSquare = toSquare(i)
+            break
+        }
+    }
+    if (!kingSquare) throw new Error("No king on board!!!!")
 
+    for (let i = 0; i < 64; i++) {
+        const piece = board[i]
+        if (!piece || getColor(piece) === turn) continue
 
+        const moves = getMoves(piece, boardState, toSquare(i))
+        if (moves.some(m => m.to === kingSquare)) return true
+    }
+    return false
+}
 
+function leavesKingInCheck(boardState: BoardState, move: Move): boolean {
+    const turn = boardState.turn
+    const newState = makeMove(boardState, move)
+    return kingInCheck(newState, turn)
+}
 
+function getLegalMoves(piece: Piece, boardState: BoardState, square: Square): Move[] {
+    const pseudoMoves = getMoves(piece, boardState, square)
+    const color = getColor(piece)
+    return pseudoMoves.filter(move => {
+        if ((move.type === "castle-king-side" || move.type === "castle-queen-side") && kingInCheck(boardState, color)) {
+            return false
+        }
+        
+        return !leavesKingInCheck(boardState, move)
+    })
+}
 
 function isPawn(piece: Piece | null) {
     if (piece) {
