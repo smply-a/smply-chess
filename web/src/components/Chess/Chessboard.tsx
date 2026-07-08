@@ -2,15 +2,17 @@
 import { displayVsStateIndex } from "@/lib/Chess/board"
 import { Interaction, useMatch } from "@/lib/Chess/ChessProvider"
 import { Board, BoardState, getColor, getIndex, getPieceType, toSquare } from "@/lib/Chess/types"
+import MatchEndOverlay from "./MatchEndOverlay"
 import PromotionOverlay from "./PromotionOverlay"
 import ChessSquare from "./Square"
 
 // TODO input via keyboard
+// todo winning conditions und overlay
 
 export const ChessBoard = () => {
     const {matchState, interaction, orientation, handlePromotion, handleSelect, toggleOrientation, cancelPromotion, } = useMatch()
 
-    const {history, inCheck, boardState} = matchState
+    const {history, inCheck, boardState, isCheckMate, isStaleMate} = matchState
     const {turn} = boardState
 
     const lastMove = history.at(-1)
@@ -43,12 +45,15 @@ export const ChessBoard = () => {
                 })}
 
                 {interaction.type === "promoting" && 
-            <PromotionOverlay
-                promotionMoves={interaction.moves}
-                orientation={orientation}
-                onCancel={cancelPromotion}
-                onPromote={handlePromotion}
-            />}
+                    <PromotionOverlay
+                        promotionMoves={interaction.moves}
+                        orientation={orientation}
+                        onCancel={cancelPromotion}
+                        onPromote={handlePromotion}
+                    />
+                }
+
+                {(isCheckMate || isStaleMate) && <MatchEndOverlay/>}
             </div>
         </section>
     )

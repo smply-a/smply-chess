@@ -1,4 +1,4 @@
-import ChessBoard from "@/components/Chess/Chessboard";
+import ChessBoard from "@/components/chess/Chessboard";
 import { MatchProvider } from "@/lib/Chess/ChessProvider";
 
 export default function Home() {

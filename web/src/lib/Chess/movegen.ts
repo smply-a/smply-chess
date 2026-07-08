@@ -55,7 +55,7 @@ function getMoves(piece: Piece, boardState: BoardState, square: Square): Move[] 
         case "q":
             return getSlidingMoves(square, pieceColor, board, [...bishopOffsets, ...rookOffsets])
         case "k":
-            return getKingMoves(square, pieceColor, boardState, castlingRights)
+            return getKingMoves(square, pieceColor, board, castlingRights)
     }
 }
 
@@ -189,8 +189,7 @@ function getSlidingMoves(square: Square, turn: Color, board: Board, offsets: num
     return moves
 }
 
-function getKingMoves(square: Square, turn: Color, boardState: BoardState, castlingRights: CastlingRights): Move[] {
-    const {board} = boardState
+function getKingMoves(square: Square, turn: Color, board: Board, castlingRights: CastlingRights): Move[] {
     const moves: Move[] = []
     const attacks = [9, 8, 7, 1, -1, -7, -8, -9]
 
@@ -288,27 +287,33 @@ function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, 
 }
 
 // braucht color falls ich einen boardstate nur simuliere
-function kingInCheck(boardState: BoardState, turn: Color): boolean {
-    const { board } = boardState
-    let kingSquare: Square | null = null
-
+function squareAttacked(square: Square, boardState: BoardState, color: Color) {
+    const {board} = boardState
     for (let i = 0; i < 64; i++) {
         const piece = board[i]
-        if (piece && getPieceType(piece) === "k" && getColor(piece) === turn) {
-            kingSquare = toSquare(i)
-            break
-        }
-    }
-    if (!kingSquare) throw new Error("No king on board!!!!")
-
-    for (let i = 0; i < 64; i++) {
-        const piece = board[i]
-        if (!piece || getColor(piece) === turn) continue
+        if (!piece || getColor(piece) === color) continue
 
         const moves = getMoves(piece, boardState, toSquare(i))
-        if (moves.some(m => m.to === kingSquare)) return true
+        if (moves.some(m => m.to === square)) return true
     }
     return false
+}
+
+function getKingIndex(board: Board, color: Color) {
+    for (let i = 0; i < 64; i++) {
+        const piece = board[i]
+        if (piece && getPieceType(piece) === "k" && getColor(piece) === color) {
+            return i
+        }
+    }
+    throw new Error("No king on board!!!!")
+}
+
+function kingInCheck(boardState: BoardState, color: Color): boolean {
+    const { board } = boardState
+    const kingSquare = toSquare(getKingIndex(board, color))
+
+    return squareAttacked(kingSquare, boardState, color)
 }
 
 function leavesKingInCheck(boardState: BoardState, move: Move): boolean {
@@ -321,8 +326,18 @@ function getLegalMoves(piece: Piece, boardState: BoardState, square: Square): Mo
     const pseudoMoves = getMoves(piece, boardState, square)
     const color = getColor(piece)
     return pseudoMoves.filter(move => {
-        if ((move.type === "castle-king-side" || move.type === "castle-queen-side") && kingInCheck(boardState, color)) {
-            return false
+
+        if (move.type === "castle-king-side") {
+            const kingIdnex = getKingIndex(boardState.board, color)
+            return !kingInCheck(boardState, color) 
+            && !squareAttacked(toSquare(kingIdnex + 1),boardState, color)
+            && !squareAttacked(toSquare(kingIdnex + 2),boardState, color)
+        }
+        if (move.type === "castle-queen-side") {
+            const kingIdnex = getKingIndex(boardState.board, color)
+            return !kingInCheck(boardState, color) 
+            && !squareAttacked(toSquare(kingIdnex - 1),boardState, color)
+            && !squareAttacked(toSquare(kingIdnex - 2),boardState, color)
         }
         
         return !leavesKingInCheck(boardState, move)
