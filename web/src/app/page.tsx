@@ -1,17 +1,11 @@
-import ChessBoard from "@/components/chess/Chessboard";
-import { MatchProvider } from "@/lib/Chess/ChessProvider";
 
 export default function Home() {
     return (
-        <MatchProvider>
-            <div className="grid grid-cols-[1fr_2fr_1fr]">
-                <aside className="bg-red-600">Playing options / chat</aside>
-                <main className=""><ChessBoard/></main>
-                <aside className="bg-red-300">Movelist</aside>
-            </div>
-        </MatchProvider>
+        <article className="flex flex-col justify-center items-center">
+            <h1>Was willst du heute machen?</h1>
+            <br/>
+            <button>Play against computer</button>
+            <button>Create lobby</button>
+        </article>
     );
 }
-
-//todo: chess provider für zustand und
-

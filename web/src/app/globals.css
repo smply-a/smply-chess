@@ -1,65 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neutral-950: #171717;
-  --color-neutral-900: #1f1f1f;
-  --color-neutral-800: #2b2b2b;
-  --color-neutral-700: #3d3d3d;
-  --color-neutral-500: #7a7a7a;
-  --color-neutral-300: #cccccc;
-  --color-neutral-50:  #fafafa;
+  /* base palette */
+  --color-white: #f2f0eb;
+  --color-white-1: #c4c2bd;
+  --color-white-2: #9a9894;
+  --color-black-border: #2a2a2a;
+  --color-black-2: #1c1c1c;
+  --color-black-1: #0f0f0f;
+  --color-black: #050505;
+  --color-red: #6b1d2f;
+  --color-red-light: #8f2c42;
+  --color-red-dark: #4a1420;
+  --color-red-subtle: rgba(107, 29, 47, 0.18);
+  --color-red-border: rgba(107, 29, 47, 0.5);
 
-  --color-success-500: #4ade80;
-  --color-error-500: #ef4444;
-  --color-warning-500: #eab308;
-
-  --color-board-light: #d9bf94;
-  --color-board-dark: #6b4226;
-  --color-square-selected: #8c8c8c;
-  --color-square-last-move: #a8a8a8;
-  --color-square-check: #ff0000;
+  /* chess board MAYBE LILA TRY STATT ROT*/
+  --color-board-light: #D2B48C;
+  --color-board-dark: #4A3525;
+  --color-square-selected: var(--color-white-2);
+  --color-square-last-move: var(--color-white-1);
+  --color-square-check: var(--color-red-light);
   --color-square-hover: var(--color-square-selected);
   --color-move-indicator: rgba(23, 23, 23, 0.5);
   --color-capture-ring: var(--color-move-indicator);
 
+  --color-bg-page: var(--color-black);
+  --color-bg-surface: var(--color-black-1);
+  --color-bg-surface-hover: var(--color-black-2);
+  --color-text-primary: var(--color-white);
+  --color-text-secondary: var(--color-white-2);
+  --color-text-muted: var(--color-white-1);
+  --color-border-default: var(--color-black-border);
+  --color-action-primary: var(--color-white);
+  --color-action-primary-hover: var(--color-white-1);
+  --color-action-primary-text: var(--color-black);
+  --color-action-secondary: var(--color-black-2);
+  --color-action-secondary-hover: var(--color-black-border);
+  --color-action-secondary-text: var(--color-white);
+  --color-action-secondary-border: var(--color-black-border);
+  --color-action-danger: transparent;
+  --color-action-danger-hover: var(--color-red-subtle);
+  --color-action-danger-text: var(--color-red-light);
+  --color-action-danger-border: var(--color-red-border);
+  --color-focus-ring: var(--color-white);
+
+  /* fonts */
   --font-serif: var(--font-noto-serif), ui-serif, Georgia, serif;
-}
-
-/* Semantic layer */
-:root {
-  --color-bg-page: var(--color-neutral-950);
-  --color-bg-surface: var(--color-neutral-900);
-  --color-bg-surface-hover: var(--color-neutral-800);
-  --color-text-primary: var(--color-neutral-50);
-  --color-text-secondary: var(--color-neutral-500);
-  --color-text-muted: var(--color-neutral-300);
-  --color-border-default: var(--color-neutral-700);
-
-  --color-action-primary: var(--color-neutral-50);
-  --color-action-primary-hover: var(--color-neutral-300);
-  --color-action-primary-text: var(--color-neutral-950);
-
-  --color-action-secondary: var(--color-neutral-800);
-  --color-action-secondary-hover: var(--color-neutral-700);
-  --color-action-secondary-text: var(--color-neutral-50);
-  --color-action-secondary-border: var(--color-neutral-700);
-}
-
-/* !! only use them !! */
-@theme {
-  --color-bg-page: var(--color-bg-page);
-  --color-bg-surface: var(--color-bg-surface);
-  --color-bg-surface-hover: var(--color-bg-surface-hover);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-border-default: var(--color-border-default);
-  --color-action-primary: var(--color-action-primary);
-  --color-action-primary-text: var(--color-action-primary-text);
-  --color-action-secondary: var(--color-action-secondary);
-  --color-action-secondary-hover: var(--color-action-secondary-hover);
-  --color-action-secondary-text: var(--color-action-secondary-text);
-  --color-action-secondary-border: var(--color-action-secondary-border);
 }
 
 body {
