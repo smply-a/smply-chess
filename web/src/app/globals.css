@@ -5,15 +5,11 @@
   --color-white: #f2f0eb;
   --color-white-1: #c4c2bd;
   --color-white-2: #9a9894;
-  --color-black-border: #2a2a2a;
+  --color-dark-border: #2a2a2a;
+  --color-light-boarder: #c4c2bd;
   --color-black-2: #1c1c1c;
   --color-black-1: #0f0f0f;
   --color-black: #050505;
-  --color-red: #6b1d2f;
-  --color-red-light: #8f2c42;
-  --color-red-dark: #4a1420;
-  --color-red-subtle: rgba(107, 29, 47, 0.18);
-  --color-red-border: rgba(107, 29, 47, 0.5);
 
   /* chess board MAYBE LILA TRY STATT ROT*/
   --color-board-light: #D2B48C;
@@ -29,8 +25,8 @@
   --color-bg-surface: var(--color-black-1);
   --color-bg-surface-hover: var(--color-black-2);
   --color-text-primary: var(--color-white);
-  --color-text-secondary: var(--color-white-2);
-  --color-text-muted: var(--color-white-1);
+  --color-text-secondary: var(--color-white-1);
+  --color-text-muted: var(--color-white-2);
   --color-border-default: var(--color-black-border);
   --color-action-primary: var(--color-white);
   --color-action-primary-hover: var(--color-white-1);
@@ -43,10 +39,12 @@
   --color-action-danger-hover: var(--color-red-subtle);
   --color-action-danger-text: var(--color-red-light);
   --color-action-danger-border: var(--color-red-border);
+  
   --color-focus-ring: var(--color-white);
 
   /* fonts */
   --font-serif: var(--font-noto-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-geist-sans), Helvetica
 }
 
 body {
