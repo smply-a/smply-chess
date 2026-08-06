@@ -1,7 +1,7 @@
 import ChessBoard from "@/components/chess/Chessboard";
 import { MatchProvider } from "@/lib/Chess/ChessProvider";
 
-export default function Match() {
+export default function LocaleMatch() {
     return (
         <MatchProvider>
             <div className="grid grid-cols-[1fr_2fr_1fr]">

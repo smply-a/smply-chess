@@ -11,9 +11,6 @@ interface Props {
     onPromote: (move: Move) => void
 }
 
-
-
-
 const PromotionOverlay = ({promotionMoves, orientation, onCancel, onPromote}: Props) => {
 
     // eslint-disable-next-line

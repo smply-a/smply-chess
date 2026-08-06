@@ -3,7 +3,7 @@
 import { createContext, Dispatch, ReactNode, useContext, useReducer, useState } from "react"
 import { newBoard } from "./board"
 import { getLegalMoves, kingInCheck, makeMove, Move } from "./movegen"
-import { BoardState, Color, getColor, getIndex, Square, toSquare } from "./types"
+import { BoardState, Color, getColor, getIndex, Piece, Square, toSquare } from "./types"
 
 export { MatchProvider, useMatch, type Interaction }
 
@@ -14,6 +14,7 @@ interface MatchState  {
     inCheck: boolean
     isCheckMate: boolean;
     isStaleMate: boolean;
+    capturedMaterial: Record<Color, Piece[]>
 } 
 
 type MatchAction = 
@@ -23,8 +24,25 @@ type MatchAction =
 function matchReducer(state: MatchState, action: MatchAction) {
     switch (action.type) {
         case "MAKE_MOVE":{
+            const move = action.move
             // todo handle clock mybe??
-            const boardState = makeMove(state.boardState, action.move)
+            
+            const boardState = makeMove(state.boardState, move)
+
+            let capturedMaterial = state.capturedMaterial
+
+            if (move.type === "capture") {
+                const piece = state.boardState.board[getIndex(move.to)]
+                if (!piece) throw new Error("Target of capture was empty")
+        
+                const turn = state.boardState.turn
+
+                capturedMaterial = {
+                    ...state.capturedMaterial,
+                    [turn]: [...state.capturedMaterial[turn], piece]
+                }
+            }
+
             const inCheck = kingInCheck(boardState, boardState.turn);
             const legalMoves = getAllLegalMoves(boardState)
 
@@ -39,7 +57,8 @@ function matchReducer(state: MatchState, action: MatchAction) {
                 inCheck,
                 legalMoves,
                 isCheckMate,
-                isStaleMate
+                isStaleMate,
+                capturedMaterial
             }
         }       
         case "RESET_GAME":{
@@ -163,6 +182,10 @@ function newMatch(): MatchState {
         legalMoves: getAllLegalMoves(boardState),
         isCheckMate: false,
         isStaleMate: false,
+        capturedMaterial: {
+            [Color.White]: [],
+            [Color.Black]: [],
+        }
     }
 }
 

@@ -55,6 +55,50 @@ function parseFEN(fen: string): BoardState {
     return {board, turn, castlingRights, enPassantTarget, halfmoveClock, fullmoveNumber}
 }
 
+function exportFEN({board, turn, castlingRights, enPassantTarget, halfmoveClock, fullmoveNumber}: BoardState) {
+    let str = ""
+    for (let rank = 7; rank>=0; rank--) {
+        let empty = 0
+        for (let file = 0; file<8; file ++) {
+            const i = rank*8+file
+            const piece = board[i]
+            if (piece) {
+                if (empty > 0) {
+                    str+=empty.toString()
+                    empty = 0
+                }
+                str += piece
+            } else {
+                empty++
+            }
+        }
+        if (empty > 0) {
+            str += empty.toString()
+            empty = 0
+        }
+        if (rank > 0) str+="/"
+    }
+
+    str += ` ${turn} `
+
+    let castling = ""
+    if(castlingRights.w.kingSide) castling+="K"
+    if(castlingRights.w.queenSide) castling+="Q"
+    if(castlingRights.b.kingSide) castling+="k"
+    if(castlingRights.b.queenSide) castling+="q"
+
+    if(!castling) str += "-"
+    else str += castling
+
+    if (enPassantTarget) str+=` ${enPassantTarget} `
+    else str+=" - "
+
+    str += halfmoveClock
+    str += fullmoveNumber
+
+    return str
+}
+
 const pieceMapping: Record<Piece, string> = {
     "p": "/pieces/p.svg",
     "k": "/pieces/k.svg",

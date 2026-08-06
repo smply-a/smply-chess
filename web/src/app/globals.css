@@ -7,8 +7,8 @@
   --color-white-2: #9a9894;
   --color-dark-border: #2a2a2a;
   --color-light-boarder: #c4c2bd;
-  --color-black-2: #1c1c1c;
-  --color-black-1: #0f0f0f;
+  --color-black-2: #27272a;
+  --color-black-1: #18181b;
   --color-black: #050505;
 
   /* chess board MAYBE LILA TRY STATT ROT*/
@@ -24,10 +24,21 @@
   --color-bg-page: var(--color-black);
   --color-bg-surface: var(--color-black-1);
   --color-bg-surface-hover: var(--color-black-2);
+
   --color-text-primary: var(--color-white);
   --color-text-secondary: var(--color-white-1);
   --color-text-muted: var(--color-white-2);
+  --color-text-black: var(--color-black);
+
   --color-border-default: var(--color-black-border);
+
+  --color-nav-bg: var(--color-black);
+  --color-nav-text: var(--color-text-muted);
+  --color-nav-hover: var(--color-bg-surface);
+  --color-nav-text-hover: var(--color-text-primary);
+  --color-nav-bg-active: var(--color-white);
+  --color-nav-text-active: var(--color-text-black);
+
   --color-action-primary: var(--color-white);
   --color-action-primary-hover: var(--color-white-1);
   --color-action-primary-text: var(--color-black);
@@ -39,7 +50,7 @@
   --color-action-danger-hover: var(--color-red-subtle);
   --color-action-danger-text: var(--color-red-light);
   --color-action-danger-border: var(--color-red-border);
-  
+
   --color-focus-ring: var(--color-white);
 
   /* fonts */
