@@ -93,8 +93,7 @@ function exportFEN({board, turn, castlingRights, enPassantTarget, halfmoveClock,
     if (enPassantTarget) str+=` ${enPassantTarget} `
     else str+=" - "
 
-    str += halfmoveClock
-    str += fullmoveNumber
+    str += `${halfmoveClock} ${fullmoveNumber}`
 
     return str
 }
