@@ -2,7 +2,7 @@
 import { displayVsStateIndex } from "@/lib/Chess/board"
 import { Interaction, useMatch } from "@/lib/Chess/ChessProvider"
 import { Board, BoardState, getColor, getIndex, getPieceType, toSquare } from "@/lib/Chess/types"
-import MatchEndOverlay from "./MatchEndOverlay"
+import MatchEndOverlay from "./EndOverlay"
 import PromotionOverlay from "./PromotionOverlay"
 import ChessSquare from "./Square"
 
@@ -19,7 +19,7 @@ export const ChessBoard = () => {
     const board = getDisplayBoard(boardState, interaction)
 
     return (
-        <section className="p-4 ">
+        <section className="">
             {/*relative als anker für overlay*/}
             <div className="relative grid grid-cols-8 grid-rows-8 aspect-square select-none rounded-md overflow-hidden">
                 {Array.from({length: 64}).map((_, displayIndex) => {

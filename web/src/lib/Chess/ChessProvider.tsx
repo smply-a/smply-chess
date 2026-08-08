@@ -14,7 +14,7 @@ interface MatchState  {
     inCheck: boolean
     isCheckMate: boolean;
     isStaleMate: boolean;
-    capturedMaterial: Record<Color, Piece[]>
+    capturedMaterial: Record<Color, Piece[]>;
 } 
 
 type MatchAction = 
@@ -78,7 +78,7 @@ interface MatchContex {
     handlePromotion: (move: Move) => void,
     cancelPromotion: () => void,
 }
-
+// todo look as claude to seperate match from UI logic
 const MatchContext = createContext<MatchContex|null>(null)
 
 type Interaction = 
@@ -86,9 +86,9 @@ type Interaction =
     | {type: "selected", square: Square, moves: Move[]}
     | {type: "promoting", square: Square ,moves: Move[]} 
 
-const MatchProvider = ({children}: {children: ReactNode}) => {
+const MatchProvider = ({children, matchData}: {children: ReactNode, matchData?: MatchState}) => {
 
-    const [matchState, dispatch] = useReducer(matchReducer, newMatch())
+    const [matchState, dispatch] = useReducer(matchReducer, matchData ?? newMatch())
 
     const [interaction, setInteraction] = useState<Interaction>({type: "idle"})
     // todo other default orientation

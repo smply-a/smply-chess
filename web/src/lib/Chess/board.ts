@@ -1,6 +1,6 @@
 import { Board, BoardState, CastlingRights, Color, File, getFile, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank } from "./types";
 
-export { displayVsStateIndex, getKingIndex, newBoard, parseFEN, pieceMapping };
+export { displayVsStateIndex, exportFEN, getKingIndex, newBoard, parseFEN, pieceMapping };
 
 const newBoard = () => parseFEN(newGameBoard)
 
