@@ -1,197 +1,122 @@
 "use client"
 
-import { createContext, Dispatch, ReactNode, useContext, useReducer, useState } from "react"
+import { createContext, Dispatch, ReactNode, useContext, useReducer } from "react"
+import { assertNever } from "../utils/idk"
 import { newBoard } from "./board"
-import { getLegalMoves, kingInCheck, makeMove, Move } from "./movegen"
-import { BoardState, Color, getColor, getIndex, Piece, Square, toSquare } from "./types"
+import { getLegalMoves, getMatchEnd, kingInCheck, makeMove } from "./movegen"
+import { BoardState, Color, EngineMove, getColor, getIndex, MatchEnd, MatchHistory, Piece, toSquare } from "./types"
 
-export { MatchProvider, useMatch, type Interaction }
+export { ChessProvider, useChessDispatch, useChessState }
 
-interface MatchState  {
+interface ChessStateContext {
     boardState: BoardState
-    history: Move[]
-    legalMoves: {moves: Move[][], total: number}
-    inCheck: boolean
-    isCheckMate: boolean;
-    isStaleMate: boolean;
+    history: MatchHistory
+    legalMoves: {moves: EngineMove[][], total: number}
     capturedMaterial: Record<Color, Piece[]>;
-} 
+    inCheck: boolean
+    // either mate, stale, if neither: surrender
+    matchEnd: MatchEnd | null
+}
 
-type MatchAction = 
-    | {type: "MAKE_MOVE"; move: Move}
+type Action = 
+    | {type: "MAKE_MOVE"; move: EngineMove}
     | {type: "RESET_GAME";}
 
-function matchReducer(state: MatchState, action: MatchAction) {
+function chessReducer(state: ChessStateContext, action: Action): ChessStateContext {
     switch (action.type) {
         case "MAKE_MOVE":{
             const move = action.move
             // todo handle clock mybe??
-            
-            const boardState = makeMove(state.boardState, move)
-
-            let capturedMaterial = state.capturedMaterial
-
-            if (move.type === "capture") {
-                const piece = state.boardState.board[getIndex(move.to)]
-                if (!piece) throw new Error("Target of capture was empty")
         
+            let capturedMaterial = state.capturedMaterial
+            const capturedPiece = getCapturedPiece(state.boardState, move)
+            if (capturedPiece) {
                 const turn = state.boardState.turn
-
-                capturedMaterial = {
-                    ...state.capturedMaterial,
-                    [turn]: [...state.capturedMaterial[turn], piece]
-                }
+                capturedMaterial = { ...state.capturedMaterial, [turn]: [...state.capturedMaterial[turn], capturedPiece] }
             }
 
+            const boardState = makeMove(state.boardState, move)
             const inCheck = kingInCheck(boardState, boardState.turn);
             const legalMoves = getAllLegalMoves(boardState)
 
-            const isCheckMate =  inCheck && legalMoves.total === 0
-            let isStaleMate = false
-            if(!inCheck && legalMoves.total === 0) isStaleMate = true
-            // todo other stalemate conditions
+            const matchEnd = getMatchEnd(inCheck, legalMoves.total)
+            const history = [...state.history, {...move, timestamp: Date.now()}]
 
             return {
                 boardState,
-                history: [...state.history, action.move],
+                history,
                 inCheck,
                 legalMoves,
-                isCheckMate,
-                isStaleMate,
+                matchEnd,
                 capturedMaterial
             }
         }       
         case "RESET_GAME":{
-            return newMatch()
+            return loadChessContext()
         }
         default: assertNever(action)
     }
 }
 
-interface MatchContex {
-    matchState: MatchState,
-    dispatch: Dispatch<MatchAction> ,
-    orientation: Color,
-    toggleOrientation: () => void,
-    interaction: Interaction,
-    handleSelect: (square: Square) => void,
-    handlePromotion: (move: Move) => void,
-    cancelPromotion: () => void,
-}
-// todo look as claude to seperate match from UI logic
-const MatchContext = createContext<MatchContex|null>(null)
+const ChessStateContext = createContext<ChessStateContext|null>(null)
+const ChessDispatchContext = createContext<Dispatch<Action>|null>(null)
 
-type Interaction = 
-    | {type: "idle"}
-    | {type: "selected", square: Square, moves: Move[]}
-    | {type: "promoting", square: Square ,moves: Move[]} 
-
-const MatchProvider = ({children, matchData}: {children: ReactNode, matchData?: MatchState}) => {
-
-    const [matchState, dispatch] = useReducer(matchReducer, matchData ?? newMatch())
-
-    const [interaction, setInteraction] = useState<Interaction>({type: "idle"})
-    // todo other default orientation
-    const [orientation, setOrientation] = useState<Color>(Color.White)
-
-    const toggleOrientation = () => {
-        if (orientation === Color.White) {
-            return setOrientation(Color.Black)
-        }
-
-        return setOrientation(Color.White)
-    }
-
-    const cancelPromotion = () => {
-        setInteraction({type: "idle"})
-        return
-    }
-
-    const handlePromotion = (move: Move) => {
-        dispatch({
-            type: "MAKE_MOVE",
-            move
-        })
-        setInteraction({type: "idle"})
-        return
-    }
-
-    const handleSelect = (square: Square) => {
-        const index = getIndex(square)
-        switch (interaction.type) {
-            // dont handle squares while promoting
-            case "promoting": return
-
-            case "selected": {
-                // toggle square
-                if (square === interaction.square) {
-                    return setInteraction({ type: "idle" })
-                }
-
-                const moves = interaction.moves.filter(move => move.to === square)
-
-                // promotions have 4 moves on same square
-                if (moves.length > 1) {
-                    return setInteraction({ type: "promoting", moves, square })
-                }
-                // normal move
-                if (moves.length === 1) {
-                    dispatch({ type: "MAKE_MOVE", move: moves[0] })
-                    return setInteraction({ type: "idle" })
-                }
-
-                // select other piece
-                const piece = matchState.boardState.board[index]
-                if (piece && matchState.boardState.turn === getColor(piece)) {
-                    return setInteraction({ type: "selected", square, moves: matchState.legalMoves.moves[index] })
-                }
-
-                return setInteraction({ type: "idle" })
-            }
-            
-            case "idle": {
-                const piece = matchState.boardState.board[index]
-
-                // ignore invalid 
-                if (!piece || matchState.boardState.turn !== getColor(piece)) return
-
-                return setInteraction({type: "selected", square, moves: matchState.legalMoves.moves[index]})
-            }
-
-            default: return assertNever(interaction)
-        }
-    }
+const ChessProvider = ({children, history}: {children: ReactNode, history?: MatchHistory}) => {
+    const [chessState, dispatch] = useReducer(chessReducer, loadChessContext(history))
 
     return (
-        <MatchContext.Provider value={{matchState, toggleOrientation, dispatch, orientation, interaction, handlePromotion, handleSelect, cancelPromotion}}>{children}</MatchContext.Provider>
+        <ChessStateContext.Provider value={chessState}>{
+            <ChessDispatchContext.Provider value={dispatch}>{
+                children}
+            </ChessDispatchContext.Provider>
+        }</ChessStateContext.Provider>
     )
 }
 
-const useMatch = () => {
-    const ctx = useContext(MatchContext)
-    if (!ctx) throw new Error("Can only use Match contex within its Provider")
+const useChessState = () => {
+    const ctx = useContext(ChessStateContext)
+    if (!ctx) throw new Error("Can only use ChessContext within its Provider")
     return ctx
 }
 
-function newMatch(): MatchState {
-    const boardState = newBoard()
+const useChessDispatch = () => {
+    const ctx = useContext(ChessDispatchContext)
+    if (!ctx) throw new Error("Can only use ChessContext within its Provider")
+    return ctx
+}
+
+function loadChessContext(history?: MatchHistory): ChessStateContext {
+    let boardState = newBoard()
+    const capturedMaterial: Record<Color, Piece[]> = {
+        [Color.White]: [],
+        [Color.Black]: [],
+    }
+    for (const move of history ?? []) {
+        const {type, from, to, promotion} = move
+        const turn = boardState.turn
+        
+        const capturedPiece = getCapturedPiece(boardState, move)
+        if(capturedPiece) capturedMaterial[turn].push(capturedPiece)
+
+        boardState = makeMove(boardState, {type, from, to, promotion})
+    }
+
+    const inCheck = kingInCheck(boardState, boardState.turn)
+    const legalMoves = getAllLegalMoves(boardState)
+
     return {
         boardState,
-        history: [],
-        inCheck: false,
-        legalMoves: getAllLegalMoves(boardState),
-        isCheckMate: false,
-        isStaleMate: false,
-        capturedMaterial: {
-            [Color.White]: [],
-            [Color.Black]: [],
-        }
+        history: history ?? [],
+        inCheck,
+        legalMoves,
+        capturedMaterial,
+        matchEnd: getMatchEnd(inCheck, legalMoves.total)
     }
 }
 
 function getAllLegalMoves(boardState: BoardState) {
     let total = 0
-    const map: Move[][] = new Array(64).fill(null).map(() => [])
+    const map: EngineMove[][] = new Array(64).fill(null).map(() => [])
     const { board, turn } = boardState
 
     for (let i = 0; i < 64; i++) {
@@ -207,6 +132,14 @@ function getAllLegalMoves(boardState: BoardState) {
     return { moves: map, total }
 }
 
-function assertNever(x: never): never {
-    throw new Error("Unhandled action: " + JSON.stringify(x))
+function getCapturedPiece(boardState: BoardState, move: EngineMove): Piece | null {
+    if (move.type === "capture") {
+        const piece = boardState.board[getIndex(move.to)]
+        if (!piece) throw new Error("No piece at capture target")
+        return piece
+    }
+    if (move.type === "en-passant") {
+        return boardState.turn === Color.Black ? Piece.WhitePawn : Piece.BlackPawn
+    }
+    return null
 }

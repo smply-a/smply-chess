@@ -1,18 +1,9 @@
-import { Board, BoardState, CastlingRights, Color, getColor, getFile, getIndex, getPieceType, getRank, isBoard, Piece, PromotionType, Rank, Square, toSquare } from "./types";
+import { Board, BoardState, CastlingRights, Color, EngineMove, getColor, getFile, getIndex, getPieceType, getRank, isBoard, MatchEnd, MoveType, Piece, PromotionType, Rank, Square, toSquare } from "./types";
 
 
-export { getLegalMoves, kingInCheck, makeMove, type Move, type MoveType };
+export { getLegalMoves, getMatchEnd, kingInCheck, makeMove };
 
-type MoveType = "normal" | "capture" | "en-passant" | "castle-king-side" | "castle-queen-side"
-
-interface Move {
-    type: MoveType
-    promotion?: Piece
-    from: Square
-    to: Square
-}
-
-function newMove(type: MoveType, from: Square, to: Square): Move {
+function newMove(type: MoveType, from: Square, to: Square): EngineMove {
     return {
         type,
         from,
@@ -20,12 +11,12 @@ function newMove(type: MoveType, from: Square, to: Square): Move {
     }
 }
 
-function newPromotionMoves(type: MoveType, from: Square, to: Square, color: Color): Move[] {
+function newPromotionMoves(type: MoveType, from: Square, to: Square, color: Color): EngineMove[] {
     const promotions: PromotionType[] = ["q", "r", "b", "n"]
 
     const pieces = color === Color.White 
-        ? promotions.map(p => p.toUpperCase() as Piece)
-        : promotions.map(p => p as Piece)
+        ? promotions.map(p => p.toUpperCase() as PromotionType)
+        : promotions.map(p => p as PromotionType)
 
     return pieces.map(promotion => ({
         type,
@@ -39,7 +30,7 @@ const bishopOffsets = [9, 7, -7, -9]
 const rookOffsets = [8, -8, 1, -1]
 
 
-function getMoves(piece: Piece, boardState: BoardState, square: Square): Move[] {
+function getMoves(piece: Piece, boardState: BoardState, square: Square): EngineMove[] {
     const {board, enPassantTarget, castlingRights} = boardState
     const pieceColor = getColor(piece)
     
@@ -59,9 +50,9 @@ function getMoves(piece: Piece, boardState: BoardState, square: Square): Move[] 
     }
 }
 
-function getPawnMoves(square: Square, color: Color, board: Board, enPassantTarget: Square | null): Move[] {
+function getPawnMoves(square: Square, color: Color, board: Board, enPassantTarget: Square | null): EngineMove[] {
     // * A pawn can never be in the last rank
-    const moves: Move[] = []
+    const moves: EngineMove[] = []
 
     const rank = getRank(square)
     const file = getFile(square)
@@ -123,8 +114,8 @@ function getPawnMoves(square: Square, color: Color, board: Board, enPassantTarge
     return moves
 }
 
-function getKnightMoves(square: Square, turn: Color, board: Board): Move[] {
-    const moves: Move[] = []
+function getKnightMoves(square: Square, turn: Color, board: Board): EngineMove[] {
+    const moves: EngineMove[] = []
     const attacks = [17, 15, 10, 6, -6, -10, -15, -17]
 
     const index = getIndex(square)
@@ -154,8 +145,8 @@ function getKnightMoves(square: Square, turn: Color, board: Board): Move[] {
     return moves
 }
 
-function getSlidingMoves(square: Square, turn: Color, board: Board, offsets: number[]): Move[] {
-    const moves: Move[] = []
+function getSlidingMoves(square: Square, turn: Color, board: Board, offsets: number[]): EngineMove[] {
+    const moves: EngineMove[] = []
     const index = getIndex(square)
 
     for (const offset of offsets) {
@@ -189,8 +180,8 @@ function getSlidingMoves(square: Square, turn: Color, board: Board, offsets: num
     return moves
 }
 
-function getKingMoves(square: Square, turn: Color, board: Board, castlingRights: CastlingRights): Move[] {
-    const moves: Move[] = []
+function getKingMoves(square: Square, turn: Color, board: Board, castlingRights: CastlingRights): EngineMove[] {
+    const moves: EngineMove[] = []
     const attacks = [9, 8, 7, 1, -1, -7, -8, -9]
 
     const index = getIndex(square)
@@ -229,7 +220,7 @@ function getKingMoves(square: Square, turn: Color, board: Board, castlingRights:
 }
 
 // todo add material count
-function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, fullmoveNumber}: BoardState, {type, from, to, promotion}: Move): BoardState {
+function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, fullmoveNumber}: BoardState, {type, from, to, promotion}: EngineMove): BoardState {
 
     const toIndex = getIndex(to)
     const fromIndex = getIndex(from)
@@ -239,7 +230,7 @@ function makeMove({board, turn, enPassantTarget, castlingRights, halfmoveClock, 
     let piece = newBoard[fromIndex]
     if (!piece) throw new Error("Move has no valid piece where it moves from")
 
-    if (promotion) piece = promotion
+    if (promotion) piece = promotion as Piece
     
     // pawn related
     if (turn === Color.Black) {
@@ -316,13 +307,13 @@ function kingInCheck(boardState: BoardState, color: Color): boolean {
     return squareAttacked(kingSquare, boardState, color)
 }
 
-function leavesKingInCheck(boardState: BoardState, move: Move): boolean {
+function leavesKingInCheck(boardState: BoardState, move: EngineMove): boolean {
     const turn = boardState.turn
     const newState = makeMove(boardState, move)
     return kingInCheck(newState, turn)
 }
 
-function getLegalMoves(piece: Piece, boardState: BoardState, square: Square): Move[] {
+function getLegalMoves(piece: Piece, boardState: BoardState, square: Square): EngineMove[] {
     const pseudoMoves = getMoves(piece, boardState, square)
     const color = getColor(piece)
     return pseudoMoves.filter(move => {
@@ -342,6 +333,28 @@ function getLegalMoves(piece: Piece, boardState: BoardState, square: Square): Mo
         
         return !leavesKingInCheck(boardState, move)
     })
+}
+
+
+
+
+function isCheckMate(inCheck: boolean, legalMovesTotal: number) {
+    return inCheck && legalMovesTotal === 0
+}
+
+function isStaleMate(inCheck: boolean, legalMovesTotal: number) {
+    if(!inCheck && legalMovesTotal === 0) return true
+    // todo other stalemate conditions
+
+
+
+    return false
+}
+
+function getMatchEnd(inCheck: boolean, legalMovesTotal: number): MatchEnd | null {
+    if (isCheckMate(inCheck, legalMovesTotal)) return "mate"
+    if (isStaleMate(inCheck, legalMovesTotal)) return "stale"
+    return null
 }
 
 function isPawn(piece: Piece | null) {

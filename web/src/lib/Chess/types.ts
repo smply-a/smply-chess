@@ -1,4 +1,5 @@
-export { Color, File, getColor, getFile, getIndex, getPieceType, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank, toSquare, type Board, type BoardState, type CastlingRights, type PieceType, type PromotionType, type Square };
+
+export { Color, File, getColor, getFile, getIndex, getPieceType, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank, toSquare, type Board, type BoardState, type CastlingRights, type EngineMove, type MatchEnd, type MatchHistory, type MatchMove, type MoveType, type PieceType, type PromotionType, type Square };
 
 enum Color {
     White = "w",
@@ -164,3 +165,23 @@ interface BoardState {
     halfmoveClock: number,
     fullmoveNumber: number
 }
+
+
+
+
+type MoveType = "normal" | "capture" | "en-passant" | "castle-king-side" | "castle-queen-side"
+
+interface EngineMove {
+    type: MoveType
+    promotion?: PromotionType
+    from: Square
+    to: Square
+}
+
+interface MatchMove extends EngineMove {
+    timestamp: number | null
+}
+
+type MatchHistory = MatchMove[]
+
+type MatchEnd = "surrender" | "stale" | "mate"

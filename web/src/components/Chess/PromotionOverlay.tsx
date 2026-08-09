@@ -1,14 +1,13 @@
 import { displayVsStateIndex } from "@/lib/Chess/board"
-import { Move } from "@/lib/Chess/movegen"
-import { Color, getIndex, Rank } from "@/lib/Chess/types"
+import { Color, EngineMove, getIndex, Piece, Rank } from "@/lib/Chess/types"
 import PieceComponent from "./Piece"
 
 
 interface Props {
-    promotionMoves: Move[],
+    promotionMoves: EngineMove[],
     orientation: Color,
     onCancel: () => void,
-    onPromote: (move: Move) => void
+    onPromote: (move: EngineMove) => void
 }
 
 const PromotionOverlay = ({promotionMoves, orientation, onCancel, onPromote}: Props) => {
@@ -50,7 +49,7 @@ const PromotionOverlay = ({promotionMoves, orientation, onCancel, onPromote}: Pr
                         "
                         onClick={() => onPromote(move)}
                     >
-                        <PieceComponent piece={piece}/>
+                        <PieceComponent piece={piece as Piece}/>
                     </button>
                 )
             })}

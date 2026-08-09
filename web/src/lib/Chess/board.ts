@@ -98,6 +98,9 @@ function exportFEN({board, turn, castlingRights, enPassantTarget, halfmoveClock,
     return str
 }
 
+
+
+
 const pieceMapping: Record<Piece, string> = {
     "p": "/pieces/p.svg",
     "k": "/pieces/k.svg",

@@ -1,6 +1,7 @@
 "use client"
 import { displayVsStateIndex } from "@/lib/Chess/board"
-import { Interaction, useMatch } from "@/lib/Chess/ChessProvider"
+import { useChessState } from "@/lib/Chess/ChessProvider"
+import { Interaction, useInteraction, useOrientation } from "@/lib/Chess/InteractionProvider"
 import { Board, BoardState, getColor, getIndex, getPieceType, toSquare } from "@/lib/Chess/types"
 import MatchEndOverlay from "./EndOverlay"
 import PromotionOverlay from "./PromotionOverlay"
@@ -10,9 +11,11 @@ import ChessSquare from "./Square"
 // todo winning conditions und overlay
 
 export const ChessBoard = () => {
-    const {matchState, interaction, orientation, handlePromotion, handleSelect, toggleOrientation, cancelPromotion, } = useMatch()
+    const {interaction, handlePromotion, handleSelect, cancelPromotion, } = useInteraction()
+    const {orientation} = useOrientation()
+    const chessState = useChessState()
 
-    const {history, inCheck, boardState, isCheckMate, isStaleMate} = matchState
+    const {history, inCheck, boardState, matchEnd} = chessState
     const {turn} = boardState
 
     const lastMove = history.at(-1)
@@ -34,7 +37,7 @@ export const ChessBoard = () => {
                     return (<ChessSquare 
                         key={thisSquare}
                         piece={piece}
-                        turn={matchState.boardState.turn}
+                        turn={chessState.boardState.turn}
                         isCheck={isCheck}
                         isWhite={(rank + file) % 2 === 1}
                         isSelected={selectedSquare === thisSquare}
@@ -53,7 +56,7 @@ export const ChessBoard = () => {
                     />
                 }
 
-                {(isCheckMate || isStaleMate) && <MatchEndOverlay/>}
+                {(matchEnd) && <MatchEndOverlay/>}
             </div>
         </section>
     )
