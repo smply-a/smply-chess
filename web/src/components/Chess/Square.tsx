@@ -1,5 +1,4 @@
-import { Move } from "@/lib/Chess/movegen";
-import { Color, getColor, Piece } from "@/lib/Chess/types";
+import { Color, EngineMove, getColor, Piece } from "@/lib/Chess/types";
 import PieceComponent from "./Piece";
 
 interface Props {
@@ -9,7 +8,7 @@ interface Props {
     isSelected: boolean;
     isLastMove: boolean
     isCheck: boolean;
-    possibleMove?: Move[];
+    possibleMove?: EngineMove[];
     onClick: () => void;
 }
 

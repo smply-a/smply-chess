@@ -1,26 +1,26 @@
 "use client"
 
 import { createContext, Dispatch, ReactNode, useContext, useReducer } from "react"
-import { assertNever } from "../utils/idk"
-import { newBoard } from "./board"
-import { getLegalMoves, getMatchEnd, kingInCheck, makeMove } from "./movegen"
-import { BoardState, Color, EngineMove, getColor, getIndex, MatchEnd, MatchHistory, Piece, toSquare } from "./types"
+import { newBoard } from "../../lib/Chess/board"
+import { getLegalMoves, getMatchEnd, kingInCheck, makeMove } from "../../lib/Chess/movegen"
+import { BoardState, Color, EngineMove, getColor, getIndex, MatchEnd, MatchMove, Piece, toSquare } from "../../lib/Chess/types"
+import { assertNever } from "../../lib/utils/idk"
 
 export { ChessProvider, useChessDispatch, useChessState }
 
 interface ChessStateContext {
     boardState: BoardState
-    history: MatchHistory
+    history: MatchMove[]
     legalMoves: {moves: EngineMove[][], total: number}
     capturedMaterial: Record<Color, Piece[]>;
     inCheck: boolean
-    // either mate, stale, if neither: surrender
     matchEnd: MatchEnd | null
 }
 
 type Action = 
     | {type: "MAKE_MOVE"; move: EngineMove}
     | {type: "RESET_GAME";}
+    | {type: "LOSE_TIME"}
 
 function chessReducer(state: ChessStateContext, action: Action): ChessStateContext {
     switch (action.type) {
@@ -54,6 +54,12 @@ function chessReducer(state: ChessStateContext, action: Action): ChessStateConte
         case "RESET_GAME":{
             return loadChessContext()
         }
+        case "LOSE_TIME":{
+            return {
+                ...state,
+                matchEnd: "time"
+            }
+        }
         default: assertNever(action)
     }
 }
@@ -61,7 +67,7 @@ function chessReducer(state: ChessStateContext, action: Action): ChessStateConte
 const ChessStateContext = createContext<ChessStateContext|null>(null)
 const ChessDispatchContext = createContext<Dispatch<Action>|null>(null)
 
-const ChessProvider = ({children, history}: {children: ReactNode, history?: MatchHistory}) => {
+const ChessProvider = ({children, history}: {children: ReactNode, history?: MatchMove[]}) => {
     const [chessState, dispatch] = useReducer(chessReducer, loadChessContext(history))
 
     return (
@@ -85,7 +91,7 @@ const useChessDispatch = () => {
     return ctx
 }
 
-function loadChessContext(history?: MatchHistory): ChessStateContext {
+function loadChessContext(history?: MatchMove[]): ChessStateContext {
     let boardState = newBoard()
     const capturedMaterial: Record<Color, Piece[]> = {
         [Color.White]: [],

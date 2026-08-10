@@ -1,8 +1,10 @@
 "use client"
+import { useChessDispatch, useChessState } from "@/components/chess/ChessProvider"
+import { usePreferences } from "@/components/Match/PreferencesProvider"
 import { displayVsStateIndex } from "@/lib/Chess/board"
-import { useChessState } from "@/lib/Chess/ChessProvider"
-import { Interaction, useInteraction, useOrientation } from "@/lib/Chess/InteractionProvider"
-import { Board, BoardState, getColor, getIndex, getPieceType, toSquare } from "@/lib/Chess/types"
+import { Board, BoardState, EngineMove, getColor, getIndex, getPieceType, Square, toSquare } from "@/lib/Chess/types"
+import { assertNever } from "@/lib/utils/idk"
+import { useState } from "react"
 import MatchEndOverlay from "./EndOverlay"
 import PromotionOverlay from "./PromotionOverlay"
 import ChessSquare from "./Square"
@@ -10,16 +12,83 @@ import ChessSquare from "./Square"
 // TODO input via keyboard
 // todo winning conditions und overlay
 
+type Interaction = 
+    | {type: "idle"}
+    | {type: "selected", square: Square, moves: EngineMove[]}
+    | {type: "promoting", square: Square, moves: EngineMove[]} 
+
 export const ChessBoard = () => {
-    const {interaction, handlePromotion, handleSelect, cancelPromotion, } = useInteraction()
-    const {orientation} = useOrientation()
+
+    const {orientation} = usePreferences()
     const chessState = useChessState()
+    const dispatch = useChessDispatch()
+    const [interaction, setInteraction] = useState<Interaction>({type: "idle"})
 
     const {history, inCheck, boardState, matchEnd} = chessState
     const {turn} = boardState
 
     const lastMove = history.at(-1)
     const board = getDisplayBoard(boardState, interaction)
+    
+    const cancelPromotion = () => {
+        setInteraction({type: "idle"})
+        return
+    }
+    
+    const handlePromotion = (move: EngineMove) => {
+        dispatch({
+            type: "MAKE_MOVE",
+            move
+        })
+        setInteraction({type: "idle"})
+        return
+    }
+    
+    const handleSelect = (square: Square) => {
+        const index = getIndex(square)
+        switch (interaction.type) {
+            // dont handle squares while promoting
+            case "promoting": return
+    
+            case "selected": {
+                // toggle square
+                if (square === interaction.square) {
+                    return setInteraction({ type: "idle" })
+                }
+    
+                const moves = interaction.moves.filter(move => move.to === square)
+    
+                // promotions have 4 moves on same square
+                if (moves.length > 1) {
+                    return setInteraction({ type: "promoting", moves, square })
+                }
+                // normal move
+                if (moves.length === 1) {
+                    dispatch({ type: "MAKE_MOVE", move: moves[0] })
+                    return setInteraction({ type: "idle" })
+                }
+    
+                // select other piece
+                const piece = chessState.boardState.board[index]
+                if (piece && chessState.boardState.turn === getColor(piece)) {
+                    return setInteraction({ type: "selected", square, moves: chessState.legalMoves.moves[index] })
+                }
+    
+                return setInteraction({ type: "idle" })
+            }
+                
+            case "idle": {
+                const piece = chessState.boardState.board[index]
+    
+                // ignore invalid 
+                if (!piece || chessState.boardState.turn !== getColor(piece)) return
+    
+                return setInteraction({type: "selected", square, moves: chessState.legalMoves.moves[index]})
+            }
+    
+            default: return assertNever(interaction)
+        }
+    }
 
     return (
         <section className="">

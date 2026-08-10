@@ -1,13 +1,17 @@
+import { Color } from "@/lib/Chess/types";
 import Image from "next/image";
 
 interface Props {
     id: number;
     name: string;
     pfp: string | null;
-    time: number;
+    color: Color
 }
 
-const PlayerCard = ({id, name, pfp, time}: Props) => {
+const PlayerCard = ({id, name, pfp, color}: Props) => {
+    
+
+
     return (
         <section
             className="bg-red-50 text-black flex items-center justify-between"

@@ -1,5 +1,5 @@
 
-export { Color, File, getColor, getFile, getIndex, getPieceType, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank, toSquare, type Board, type BoardState, type CastlingRights, type EngineMove, type MatchEnd, type MatchHistory, type MatchMove, type MoveType, type PieceType, type PromotionType, type Square };
+export { Color, File, getColor, getFile, getIndex, getPieceType, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank, toSquare, type Board, type BoardState, type CastlingRights, type EngineMove, type MatchEnd, type MatchMove, type MoveType, type PieceType, type PromotionType, type Square };
 
 enum Color {
     White = "w",
@@ -182,6 +182,4 @@ interface MatchMove extends EngineMove {
     timestamp: number | null
 }
 
-type MatchHistory = MatchMove[]
-
-type MatchEnd = "surrender" | "stale" | "mate"
+type MatchEnd = "surrender" | "stale" | "mate" | "time"
