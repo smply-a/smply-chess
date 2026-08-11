@@ -2,12 +2,12 @@ import ChessBoard from "@/components/chess/ChessBoard";
 import { ChessProvider } from "@/components/chess/ChessProvider";
 import PlayerCard from "@/components/Match/PlayerCard";
 import { PreferencesProvider } from "@/components/Match/PreferencesProvider";
-import { Color } from "@/lib/Chess/types";
 // import { MatchProvider } from "@/lib/Chess/ChessProvider";
 
 export default function LocalMatch() {
     const history = undefined
     const matchTime = 1000
+    const mode = "locale"
 
     return (
         <ChessProvider history={history}>
@@ -17,10 +17,11 @@ export default function LocalMatch() {
                     <aside className="bg-red-600">Playing options / chat</aside>
             
                     <main className="">
-                        <PlayerCard id={1} name={"joe"} pfp={""} color={Color.Black}/>
+                        <PlayerCard id={1} name={"joe"} pfp={""}/>
+
                         <ChessBoard/>
-                        
-                        <PlayerCard id={1} name={"joe"} pfp={null} color={Color.White}/>
+
+                        <PlayerCard id={1} name={"joe"} pfp={null} bottom/>
                     </main>
                 
                     <aside className="bg-red-300">Movelist</aside>

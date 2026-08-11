@@ -1,6 +1,6 @@
-import { Board, BoardState, CastlingRights, Color, File, getFile, getRank, isBoard, isColor, isPiece, isSquare, Piece, Rank } from "./types";
+import { Board, BoardState, CastlingRights, Color, File, getFile, getPieceType, getRank, isBoard, isColor, isPiece, isSquare, Piece, PieceType, Rank } from "./types";
 
-export { displayVsStateIndex, exportFEN, getKingIndex, newBoard, parseFEN, pieceMapping };
+export { displayVsStateIndex, exportFEN, getKingIndex, materialValue, newBoard, parseFEN, pieceMapping };
 
 const newBoard = () => parseFEN(newGameBoard)
 
@@ -98,7 +98,24 @@ function exportFEN({board, turn, castlingRights, enPassantTarget, halfmoveClock,
     return str
 }
 
+const pieceValue: Record<PieceType, number> = {
+    "p": 1,
+    "k": 0,
+    "n": 3,
+    "q": 9,
+    "r": 5,
+    "b": 3,
+}
 
+function materialValue(material: Piece[]) {
+    let value = 0
+    for (const piece of material) {
+        const pieceType = getPieceType(piece)
+        value += pieceValue[pieceType]
+    }
+
+    return value
+}
 
 
 const pieceMapping: Record<Piece, string> = {

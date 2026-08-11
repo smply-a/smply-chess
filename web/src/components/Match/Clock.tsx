@@ -10,3 +10,5 @@ const Clock = ({color}: {color: Color}) => {
         {formatedTime}
     </div>)
 }
+
+export default Clock
